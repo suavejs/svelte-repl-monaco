@@ -2,7 +2,7 @@
 	import { onMount, setContext, createEventDispatcher } from 'svelte';
 	import { writable } from 'svelte/store';
 	import SplitPane from './SplitPane.svelte';
-	import CodeMirror from './CodeMirror.svelte';
+	import Monaco from './Monaco.svelte';
 	import ComponentSelector from './Input/ComponentSelector.svelte';
 	import ModuleEditor from './Input/ModuleEditor.svelte';
 	import Output from './Output/index.svelte';

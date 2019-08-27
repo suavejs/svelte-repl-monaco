@@ -4,7 +4,7 @@
 	import Viewer from './Viewer.svelte';
 	import CompilerOptions from './CompilerOptions.svelte';
 	import Compiler from './Compiler.js';
-	import CodeMirror from '../CodeMirror.svelte';
+	import Monaco from '../Monaco.svelte';
 	import { is_browser } from '../env.js';
 
 	const { register_output } = getContext('REPL');
@@ -60,8 +60,9 @@
 
 <style>
 	.view-toggle {
+		font-weight: bold;
 		height: var(--pane-controls-h);
-		border-bottom: 1px solid #eee;
+		border-bottom: 1px solid var(--mdc-theme-primary);
 		white-space: nowrap;
 		box-sizing: border-box;
 	}
@@ -69,20 +70,22 @@
 	button {
 		/* width: 50%;
 		height: 100%; */
-		background: white;
+		background: transparent;
 		text-align: left;
 		position: relative;
-		font: 400 12px/1.5 var(--font);
+		font: 14px/1.5 var(--font-mono);
+		font-weight: bold;
 		border: none;
 		border-bottom: 3px solid transparent;
 		padding: 12px 12px 8px 12px;
-		color: #999;
+		color: var(--mdc-theme-on-surface);
 		border-radius: 0;
 	}
 
 	button.active {
-		border-bottom: 3px solid var(--prime);
-		color: #333;
+		border-bottom: 3px solid var(--mdc-theme-primary);
+		color: var(--mdc-theme-on-primary);
+		background-color: var(--mdc-theme-primary);
 	}
 
 	div[slot] {
@@ -94,7 +97,7 @@
 	}
 
 	h3 {
-		font: 700 12px/1.5 var(--font);
+		font: 700 12px/1.5 var(--font-body);
 		padding: 12px 0 8px 10px;
 		/* color: var(--text); */
 		color: #333;
@@ -147,7 +150,7 @@
 <!-- js output -->
 <div class="tab-content" class:visible="{view === 'js'}">
 	{#if embedded}
-		<CodeMirror
+		<Monaco
 			bind:this={js_editor}
 			mode="js"
 			errorLoc={sourceErrorLoc}
@@ -156,7 +159,7 @@
 	{:else}
 		<SplitPane type="vertical" pos={67}>
 			<div slot="a">
-				<CodeMirror
+				<Monaco
 					bind:this={js_editor}
 					mode="js"
 					errorLoc={sourceErrorLoc}
@@ -175,7 +178,7 @@
 
 <!-- css output -->
 <div class="tab-content" class:visible="{view === 'css'}">
-	<CodeMirror
+	<Monaco
 		bind:this={css_editor}
 		mode="css"
 		errorLoc={sourceErrorLoc}

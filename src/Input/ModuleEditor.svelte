@@ -1,6 +1,6 @@
 <script>
 	import { getContext, onMount } from 'svelte';
-	import CodeMirror from '../CodeMirror.svelte';
+	import Monaco from '../Monaco.svelte';
 	import Message from '../Message.svelte';
 
 	const { bundle, selected, handle_change, navigate, register_module_editor } = getContext('REPL');
@@ -40,7 +40,7 @@
 
 <div class="editor-wrapper">
 	<div class="editor">
-		<CodeMirror
+		<Monaco
 			bind:this={editor}
 			{errorLoc}
 			on:change={handle_change}

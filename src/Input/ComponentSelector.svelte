@@ -83,7 +83,7 @@
 <style>
 	.component-selector {
 		position: relative;
-		border-bottom: 1px solid #eee;
+		border-bottom: 3px solid var(--mdc-theme-primary);
 		overflow: hidden;
 	}
 
@@ -99,13 +99,14 @@
 	.file-tabs .button, .file-tabs button {
 		position: relative;
 		display: inline-block;
-		font: 400 12px/1.5 var(--font);
-		background: white;
+		font: 14px/1.5 var(--font-mono);
+		font-weight: bold;
+		background: transparent;
 		border: none;
 		border-bottom: 3px solid transparent;
 		padding: 12px 14px 8px 8px;
 		margin: 0;
-		color: #999;
+		color: #1b2b34;
 		border-radius: 0;
 	}
 
@@ -114,9 +115,9 @@
 	}
 
 	.file-tabs .button.active {
-		/* color: var(--second); */
-		color: #333;
-		border-bottom: 3px solid var(--prime);
+		border-bottom: 3px solid var(--mdc-theme-primary);
+		color: var(--mdc-theme-on-primary);
+		background-color: var(--mdc-theme-primary);
 	}
 
 	.editable, .uneditable, .input-sizer, input {
@@ -134,9 +135,9 @@
 		width: 100%;
 		left: 8px;
 		top: 12px;
-		font: 400 12px/1.5 var(--font);
+		font: 400 12px/1.5 var(--font-mono);
 		border: none;
-		color: var(--flash);
+		color: var(--mdc-theme-secondary);
 		outline: none;
 		background-color: transparent;
 	}
@@ -154,7 +155,7 @@
 	}
 
 	.remove:hover {
-		color: var(--flash);
+		color: var(--mdc-theme-danger);
 	}
 
 	.file-tabs .button.active .editable {
@@ -172,11 +173,11 @@
 		padding: 12px 10px 8px 0 !important;
 		height: 40px;
 		text-align: center;
-		background-color: white;
+		background-color: transparent;
 	}
 
 	.add-new:hover {
-		color: var(--flash) !important;
+		color: var(--mdc-theme-success) !important;
 	}
 
 	svg {
