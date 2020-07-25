@@ -4,13 +4,14 @@
 	import Viewer from './Viewer.svelte';
 	import CompilerOptions from './CompilerOptions.svelte';
 	import Compiler from './Compiler.js';
-	import CodeMirror from '../CodeMirror.svelte';
+	import Monaco from '../Monaco.svelte';
+	import Tabs from '../../../Tabs.svelte';
 	import { is_browser } from '../env.js';
 
 	const { register_output } = getContext('REPL');
 
 	export let svelteUrl;
-	export let workersUrl;
+	export let workersUrl = 'workers';
 	export let status;
 	export let sourceErrorLoc = null;
 	export let runtimeError = null;
@@ -21,68 +22,90 @@
 
 	let foo; // TODO workaround for https://github.com/sveltejs/svelte/issues/2122
 
+
 	register_output({
 		set: async (selected, options) => {
-			if (selected.type === 'js') {
-				js_editor.set(`/* Select a component to see its compiled code */`);
-				css_editor.set(`/* Select a component to see its compiled code */`);
+			if (selected.type === 'js' || selected.type === 'ts') {
+				compiled = {
+					js: '/* Select a svelte component to see compiled output */',
+					css: '/* Select a svelte component to see compiled output */',
+				 	ast: '/* Select a svelte component to see compiled output */',
+					stats: '/* Select a svelte component to see compiled output */',
+					vars: '/* Select a svelte component to see compiled output */'
+				};
 				return;
 			}
-
-			const compiled = await compiler.compile(selected, options);
-			if (!js_editor) return; // unmounted
-
-			js_editor.set(compiled.js, 'js');
-			css_editor.set(compiled.css, 'css');
+			compiled = await compiler.compile(selected, options);
 		},
 
 		update: async (selected, options) => {
-			if (selected.type === 'js') return;
-
-			const compiled = await compiler.compile(selected, options);
-			if (!js_editor) return; // unmounted
-
-			js_editor.update(compiled.js);
-			css_editor.update(compiled.css);
+			if (selected.type === 'js' || selected.type === 'ts') {
+				compiled = {
+					js: '/* Select a svelte component to see compiled output */',
+					css: '/* Select a svelte component to see compiled output */',
+				 	ast: '/* Select a svelte component to see compiled output */',
+					stats: '/* Select a svelte component to see compiled output */',
+					vars: '/* Select a svelte component to see compiled output */'
+				};				return;
+			}
+			compiled = await compiler.compile(selected, options);
 		}
 	});
 
+	let output_editor;
 	const compiler = is_browser && new Compiler(workersUrl, svelteUrl);
+	let compiled;
+	let view = 'result';
+	let content;
+	$: if(compiled) {
+		if(view === 'js'){
+			content = {source: compiled.js, type: 'ts', name: "Compiled.js"};
+		}else if(view === 'css'){
+			content = {source: compiled.css, type: 'css', name: "Compiled.css"};
+		}else	if(view === 'ast'){
+			content = {source: JSON.stringify(compiled.ast, null, 2), type: 'json', name: "Ast.json"};
+		}else	if(view === 'vars'){
+			content = {source: JSON.stringify(compiled.vars, null, 2), type: 'json', name: 'Vars.json'};
+		}else	if(view === 'stats'){
+			content = {source: JSON.stringify(compiled.stats, null, 2), type: 'json', name: 'Stats.json'};
+		}
+	}
 
-	// refs
-	let viewer;
-	let js_editor;
-	let css_editor;
+	$: if(view !== 'result'){
+		output_editor.update(content)
+	}
+	
 	const setters = {};
 
-	let view = 'result';
-</script>
+	let viewer;
+	</script>
 
 <style>
 	.view-toggle {
 		height: var(--pane-controls-h);
-		border-bottom: 1px solid #eee;
+		border: none;
 		white-space: nowrap;
 		box-sizing: border-box;
 	}
 
 	button {
-		/* width: 50%;
-		height: 100%; */
-		background: white;
+		background: transparent;
 		text-align: left;
 		position: relative;
-		font: 400 12px/1.5 var(--font);
+		font: 600 14px/1.5 var(--font-mono);
 		border: none;
-		border-bottom: 3px solid transparent;
+		border-bottom: 2px solid var(--secondary);
 		padding: 12px 12px 8px 12px;
-		color: #999;
+		color: var(--light);
 		border-radius: 0;
+	}
+	button:active, button:focus {
+		outline: none;
 	}
 
 	button.active {
-		border-bottom: 3px solid var(--prime);
-		color: #333;
+		border-bottom: 2px solid var(--primary);
+		color: var(--primary);
 	}
 
 	div[slot] {
@@ -91,16 +114,18 @@
 
 	section[slot] {
 		overflow: auto;
+		color: var(--light);
+		border-top: 3px solid var(--secondary);
 	}
 
 	h3 {
-		font: 700 12px/1.5 var(--font);
-		padding: 12px 0 8px 10px;
-		/* color: var(--text); */
-		color: #333;
+		font: 600 14px/1.2 var(--font);
+		padding: 4px 0 12px 10px;
+		color: var(--light);
 	}
 
 	.tab-content {
+		padding-top: .5rem;
 		position: absolute;
 		width: 100%;
 		height: calc(100% - 42px);
@@ -130,9 +155,24 @@
 		class:active="{view === 'css'}"
 		on:click="{() => view = 'css'}"
 	>CSS output</button>
+
+	<button
+		class:active="{view === 'ast'}"
+		on:click="{() => view = 'ast'}"
+	>AST</button>
+
+	<button
+		class:active="{view === 'vars'}"
+		on:click="{() => view = 'vars'}"
+	>Vars</button>
+
+	<button
+	class:active="{view === 'stats'}"
+	on:click="{() => view = 'stats'}"
+	>Stats</button>
+
 </div>
 
-<!-- component viewer -->
 <div class="tab-content" class:visible="{view === 'result'}">
 	<Viewer
 		bind:this={viewer}
@@ -144,41 +184,57 @@
 	/>
 </div>
 
-<!-- js output -->
-<div class="tab-content" class:visible="{view === 'js'}">
-	{#if embedded}
-		<CodeMirror
-			bind:this={js_editor}
-			mode="js"
-			errorLoc={sourceErrorLoc}
-			readonly
-		/>
-	{:else}
-		<SplitPane type="vertical" pos={67}>
-			<div slot="a">
-				<CodeMirror
-					bind:this={js_editor}
-					mode="js"
-					errorLoc={sourceErrorLoc}
-					readonly
-				/>
-			</div>
+<div class="tab-content" class:visible="{view !== 'result'}">
+	<SplitPane type="vertical" pos={90}>
+		<div slot="a">
+			<Monaco
+				bind:this={output_editor}
+				name='Compiled.ts'
+				directory="compiled"
+				mode='ts'
+				errorLoc={sourceErrorLoc}
+				readonly=true
+			/>
+		</div>
 
-			<section slot="b">
-				<h3>Compiler options</h3>
-
-				<CompilerOptions bind:foo={foo}/>
-			</section>
-		</SplitPane>
-	{/if}
+		<div slot="b">
+			<h3>Compiler options</h3>
+			<CompilerOptions bind:foo={foo}/>
+		</div>
+	</SplitPane>
 </div>
-
-<!-- css output -->
-<div class="tab-content" class:visible="{view === 'css'}">
-	<CodeMirror
-		bind:this={css_editor}
-		mode="css"
+<!--
+<div class="tab-content" class:visible="{view === 'ast'}">
+	<Monaco
+		bind:this={ast_editor}
+		name="Ast.json"
+		mode="json"
 		errorLoc={sourceErrorLoc}
-		readonly
+		readonly=true
 	/>
 </div>
+
+<div class="tab-content" class:visible="{view === 'vars'}">
+	<Monaco
+		bind:this={vars_editor}
+		name="Vars.json"
+		mode="json"
+		errorLoc={sourceErrorLoc}
+		readonly=true
+	/>
+</div>
+
+<div class="tab-content" class:visible="{view === 'stats'}">
+	<Monaco
+		bind:this={stats_editor}
+		name="Stats.json"
+		mode="json"
+		errorLoc={sourceErrorLoc}
+		readonly=true
+	/>
+</div> -->
+
+
+
+
+

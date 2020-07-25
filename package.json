@@ -1,5 +1,5 @@
 {
-  "name": "@sveltejs/svelte-repl",
+  "name": "@suavejs/svelte-repl-monaco",
   "version": "0.1.8",
   "description": "The <Repl> component used on the Svelte website",
   "main": "src/Repl.svelte",
@@ -18,11 +18,12 @@
     "eslint-plugin-svelte3": "^0.4.4",
     "rollup": "^1.12.4",
     "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-resolve": "^5.0.0",
     "rollup-plugin-terser": "^5.0.0",
     "svelte": "^3.0.0-beta.28"
   },
-  "repository": "https://github.com/sveltejs/svelte-repl",
+  "repository": "https://github.com/suavejs/svelte-repl-monaco",
   "author": "Rich Harris",
   "license": "LIL",
   "keywords": [
@@ -33,8 +34,10 @@
     "workers"
   ],
   "dependencies": {
-    "codemirror": "^5.45.0",
     "estree-walker": "^0.6.0",
+    "idb-keyval": "^3.2.0",
+    "monaco-editor": "^0.17.1",
+    "prettier": "^1.18.2",
     "sourcemap-codec": "^1.4.4",
     "yootils": "0.0.15"
   }

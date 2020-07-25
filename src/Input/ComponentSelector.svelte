@@ -2,10 +2,14 @@
 	import { getContext, createEventDispatcher } from 'svelte';
 
 	export let handle_select;
+	export let handle_add;
+	export let handle_remove;
+	export let handle_update;
 
 	const { components, selected, request_focus, rebundle } = getContext('REPL');
 
 	let editing = null;
+	let uid = 1;
 
 	function selectComponent(component) {
 		if ($selected !== component) {
@@ -21,7 +25,7 @@
 	}
 
 	function closeEdit() {
-		const match = /(.+)\.(svelte|js)$/.exec($selected.name);
+		const match = /(.+)\.(svelte|js|ts|json)$/.exec($selected.name);
 		$selected.name = match ? match[1] : $selected.name;
 		if (match && match[2]) $selected.type = match[2];
 		editing = null;
@@ -30,7 +34,6 @@
 		handle_select($selected);
 
 		components = components; // TODO necessary?
-
 		// focus the editor, but wait a beat (so key events aren't misdirected)
 		setTimeout(request_focus);
 
@@ -39,16 +42,15 @@
 
 	function remove(component) {
 		let result = confirm(`Are you sure you want to delete ${component.name}.${component.type}?`);
-
 		if (result) {
+			handle_remove(component);
 			const index = $components.indexOf(component);
-
 			if (~index) {
 				components.set($components.slice(0, index).concat($components.slice(index + 1)));
+				handle_remove(component);
 			} else {
 				console.error(`Could not find component! That's... odd`);
 			}
-
 			handle_select($components[index] || $components[$components.length - 1]);
 		}
 	}
@@ -58,8 +60,6 @@
 			event.target.select();
 		});
 	}
-
-	let uid = 1;
 
 	function addNew() {
 		const component = {
@@ -76,15 +76,16 @@
 		});
 
 		components.update(components => components.concat(component));
-		handle_select(component);
+		handle_add(component);
 	}
 </script>
 
 <style>
 	.component-selector {
 		position: relative;
-		border-bottom: 1px solid #eee;
-		overflow: hidden;
+		height: var(--pane-controls-h);
+		white-space: nowrap;
+		box-sizing: border-box;		
 	}
 
 	.file-tabs {
@@ -93,20 +94,20 @@
 		white-space: nowrap;
 		overflow-x: auto;
 		overflow-y: hidden;
-		height: 10em;
 	}
 
 	.file-tabs .button, .file-tabs button {
+		text-align: left;
 		position: relative;
-		display: inline-block;
-		font: 400 12px/1.5 var(--font);
-		background: white;
+		font: 600 14px/1.5 var(--font-mono);
 		border: none;
-		border-bottom: 3px solid transparent;
-		padding: 12px 14px 8px 8px;
-		margin: 0;
-		color: #999;
+		border-bottom: 2px solid var(--secondary);
+		display: inline-block;
+		padding: 12px 20px 8px 12px;
+		color: var(--light);
 		border-radius: 0;
+		margin: 0;
+		cursor: pointer;
 	}
 
 	.file-tabs .button:first-child {
@@ -114,17 +115,14 @@
 	}
 
 	.file-tabs .button.active {
-		/* color: var(--second); */
-		color: #333;
-		border-bottom: 3px solid var(--prime);
+		color: var(--primary);
+		border-bottom: 2px solid var(--primary);
 	}
 
 	.editable, .uneditable, .input-sizer, input {
 		display: inline-block;
 		position: relative;
-		line-height: 1;
 	}
-
 	.input-sizer {
 		color: #ccc;
 	}
@@ -134,9 +132,9 @@
 		width: 100%;
 		left: 8px;
 		top: 12px;
-		font: 400 12px/1.5 var(--font);
+		font: 500 12px/1.5 var(--font-mono);
 		border: none;
-		color: var(--flash);
+		color: var(--dark);
 		outline: none;
 		background-color: transparent;
 	}
@@ -150,11 +148,12 @@
 		text-align: right;
 		padding: 12px 0 12px 5px;
 		font-size: 8px;
-		cursor: pointer;
+		color: var(--light);
 	}
 
 	.remove:hover {
-		color: var(--flash);
+		cursor: pointer;
+		color: var(--danger);
 	}
 
 	.file-tabs .button.active .editable {
@@ -169,14 +168,15 @@
 		position: absolute;
 		left: 0;
 		top: 0;
-		padding: 12px 10px 8px 0 !important;
-		height: 40px;
+		padding: 12px 12px 8px 12px !important;
+		height: 100%;
 		text-align: center;
-		background-color: white;
+		background: transparent;
 	}
 
 	.add-new:hover {
-		color: var(--flash) !important;
+		cursor: pointer;
+		color: var(--primary) !important;
 	}
 
 	svg {
@@ -189,7 +189,7 @@
 		transform-origin: center center;
 
 		stroke: currentColor;
-		stroke-width: 2;
+		stroke-width: 4;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 		fill: none;
@@ -215,7 +215,6 @@
 					{:else}
 						{#if component === editing}
 							<span class="input-sizer">{editing.name + (/\./.test(editing.name) ? '' : `.${editing.type}`)}</span>
-
 							<input
 								autofocus
 								spellcheck={false}
@@ -235,8 +234,8 @@
 
 							<span class="remove" on:click="{() => remove(component)}">
 								<svg width="12" height="12" viewBox="0 0 24 24">
-									<line stroke="#999" x1='18' y1='6' x2='6' y2='18' />
-									<line stroke="#999" x1='6' y1='6' x2='18' y2='18' />
+									<line  x1='18' y1='6' x2='6' y2='18' />
+									<line x1='6' y1='6' x2='18' y2='18' />
 								</svg>
 							</span>
 						{/if}
@@ -246,8 +245,8 @@
 
 			<button class="add-new" on:click={addNew} title="add new component">
 				<svg width="12" height="12" viewBox="0 0 24 24">
-					<line stroke="#999" x1='12' y1='5' x2='12' y2='19' />
-					<line stroke="#999" x1='5' y1='12' x2='19' y2='12' />
+					<line x1='12' y1='5' x2='12' y2='19' />
+					<line  x1='5' y1='12' x2='19' y2='12' />
 				</svg>
 			</button>
 		</div>

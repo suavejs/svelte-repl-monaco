@@ -1,49 +1,52 @@
 <script>
 	import { getContext, onMount } from 'svelte';
-	import CodeMirror from '../CodeMirror.svelte';
+	import Monaco from '../Monaco.svelte';
 	import Message from '../Message.svelte';
 
-	const { bundle, selected, handle_change, navigate, register_module_editor } = getContext('REPL');
-
+	const { bundle, selected, components, handle_change, navigate, register_module_editor } = getContext('REPL');
 	export let errorLoc;
-
 	let editor;
 	onMount(() => {
 		register_module_editor(editor);
 	});
-
 	export function focus() {
 		editor.focus();
 	}
+	
+	let name = 'App.svelte';
+	let mode = 'handlebars';
+
+	let files = [
+	  {name: 'App.svelte', source: ''}
+	];
+
 </script>
 
 <style>
 	.editor-wrapper {
 		z-index: 5;
-		background: var(--back-light);
+		background: var(--secondary);
 		display: flex;
 		flex-direction: column;
 	}
-
 	.editor {
 		height: 0;
 		flex: 1 1 auto;
 	}
-
 	:global(.columns) .editor-wrapper {
-		/* make it easier to interact with scrollbar */
 		padding-right: 8px;
 		height: auto;
-		/* height: 100%; */
 	}
 </style>
 
 <div class="editor-wrapper">
 	<div class="editor">
-		<CodeMirror
+		<Monaco
 			bind:this={editor}
 			{errorLoc}
 			on:change={handle_change}
+			{name}
+			{mode}
 		/>
 	</div>
 

@@ -2,19 +2,19 @@
 	import { onMount, setContext, createEventDispatcher } from 'svelte';
 	import { writable } from 'svelte/store';
 	import SplitPane from './SplitPane.svelte';
-	import CodeMirror from './CodeMirror.svelte';
+	import Monaco from './Monaco.svelte';
 	import ComponentSelector from './Input/ComponentSelector.svelte';
 	import ModuleEditor from './Input/ModuleEditor.svelte';
 	import Output from './Output/index.svelte';
 	import Bundler from './Bundler.js';
 	import { is_browser } from './env.js';
 
-	export let workersUrl;
+	export let workersUrl = 'workers';
 	export let packagesUrl = 'https://unpkg.com';
 	export let svelteUrl = `${packagesUrl}/svelte`;
 	export let embedded = false;
 	export let orientation = 'columns';
-	export let relaxed = false;
+	export let relaxed = true;
 	export let fixed = false;
 	export let fixedPos = 50;
 	export let injectedJS = '';
@@ -43,7 +43,8 @@
 		await output_ready;
 
 		injectedCSS = data.css || '';
-		module_editor.set($selected.source, $selected.type);
+		//module_editor.init($components);
+		module_editor.set($selected);
 		output.set($selected, $compile_options);
 	}
 
@@ -58,10 +59,14 @@
 		injectedCSS = data.css || '';
 
 		if (matched_component) {
-			module_editor.update(matched_component.source);
+			//console.log('found matched component: ' + matched_component);
+			//handle_select(matched_component);
+			module_editor.update(matched_component);
 			output.update(matched_component, $compile_options);
 		} else {
-			module_editor.set(matched_component.source, matched_component.type);
+			//console.log('adding component: ' + matched_component)
+			//handle_add(matched_component);
+			module_editor.set(matched_component);
 			output.set(matched_component, $compile_options);
 		}
 	}
@@ -71,11 +76,9 @@
 	}
 
 	const dispatch = createEventDispatcher();
-
 	const components = writable([]);
 	const selected = writable(null);
 	const bundle = writable(null);
-
 	const compile_options = writable({
 		generate: 'dom',
 		dev: false,
@@ -85,10 +88,8 @@
 		immutable: false,
 		legacy: false
 	});
-
 	let module_editor;
 	let output;
-
 	let current_token;
 	async function rebundle() {
 		const token = current_token = {};
@@ -103,13 +104,11 @@
 	let fulfil_output_ready;
 	let output_ready = new Promise(f => fulfil_output_ready = f);
 
-
 	setContext('REPL', {
 		components,
 		selected,
 		bundle,
 		compile_options,
-
 		rebundle,
 
 		navigate: item => {
@@ -126,11 +125,11 @@
 		handle_change: event => {
 			selected.update(component => {
 				// TODO this is a bit hacky — we're relying on mutability
-				// so that updating components works... might be better
-				// if a) components had unique IDs, b) we tracked selected
-				// *index* rather than component, and c) `selected` was
-				// derived from `components` and `index`
-				component.source = event.detail.value;
+				// so that updating components works... might be better if 
+					// a) components had unique IDs
+					// b) we tracked selected *index* rather than component
+					// c) `selected` was derived from `components` and `index`
+				component.source = event.detail;
 				return component;
 			});
 
@@ -145,7 +144,6 @@
 				components: $components
 			});
 		},
-
 		register_module_editor(editor) {
 			module_editor = editor;
 			fulfil_module_editor_ready();
@@ -163,8 +161,34 @@
 
 	function handle_select(component) {
 		selected.set(component);
-		module_editor.set(component.source, component.type);
+		module_editor.set($selected);
 		output.set($selected, $compile_options);
+	}
+
+	function handle_rename(old_name, new_component) {
+		console.log(`old name: ${old_name}, new name: ${new_component.name}`)
+		module_editor.rename(old_name, new_name);
+		handle_update(new_component);
+	}
+	function handle_update(component) {
+		console.log(`handle update: `, component)
+
+		//console.log('updating existing component' + component);
+		selected.set(component);
+		module_editor.update($selected);
+		output.set($selected, $compile_options);
+	}
+
+	function handle_add(component) {
+		console.log(`handle add:`, component)
+		selected.set(component);
+		module_editor.add($selected);
+		output.set($selected, $compile_options);
+	}
+
+	function handle_remove(component) {
+		//console.log('removing existing component:' + component)
+		module_editor.remove(component);
 	}
 
 	let input;
@@ -205,7 +229,7 @@
 		top: 0;
 		left: 0;
 		width: 100%;
-		height: 42px;
+		height: 40px;
 		box-sizing: border-box;
 	}
 
@@ -222,8 +246,11 @@
 		{fixed}
 	>
 		<section slot=a>
-			<ComponentSelector {handle_select}/>
-			<ModuleEditor bind:this={input} errorLoc="{sourceErrorLoc || runtimeErrorLoc}"/>
+			<ComponentSelector {handle_update} {handle_add} {handle_remove} {handle_select}/>
+			<ModuleEditor
+				bind:this={input}
+				errorLoc="{sourceErrorLoc || runtimeErrorLoc}"
+			/>
 		</section>
 
 		<section slot=b style='height: 100%;'>

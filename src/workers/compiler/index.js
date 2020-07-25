@@ -26,7 +26,7 @@ const common_options = {
 
 function compile({ id, source, options }) {
 	try {
-		const { js, css } = svelte.compile(
+		const { js, css, vars, stats, ast } = svelte.compile(
 			source,
 			Object.assign({}, common_options, options)
 		);
@@ -34,6 +34,9 @@ function compile({ id, source, options }) {
 		return {
 			id,
 			result: {
+				stats: stats,
+				ast: ast,
+				vars: vars,
 				js: js.code,
 				css: css.code || `/* Add a <sty` + `le> tag to see compiled CSS */`
 			}

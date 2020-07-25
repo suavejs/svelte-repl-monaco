@@ -39,7 +39,7 @@ self.addEventListener('message', event => {
 });
 
 const common_options = {
-	dev: true,
+	dev: false
 };
 
 let cached = {
@@ -292,7 +292,8 @@ async function bundle({ uid, components }) {
 			warnings: dom.warnings,
 			error: Object.assign({}, e, {
 				message: e.message,
-				stack: e.stack
+				stack: e.stack,
+				e
 			})
 		};
 	}

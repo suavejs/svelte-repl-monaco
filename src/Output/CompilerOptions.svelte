@@ -8,8 +8,9 @@
 	.options {
 		padding: 0 10px;
 		font-family: var(--font-mono);
-		font-size: 13px;
-		color: #999;
+		font-size: 1rem;
+		font-weight: bold;
+		color: var(--light);
 		line-height: 1.8;
 	}
 
@@ -17,7 +18,7 @@
 		display: block;
 		padding: 0 0 0 1.25em;
 		white-space: nowrap;
-		color: #333;
+		color: var(--light);
 		user-select: none;
 	}
 
@@ -39,7 +40,7 @@
 	}
 
 	label[for] {
-		color: var(--string);
+		color: var(--light);
 	}
 
 	input[type=checkbox] {
@@ -103,7 +104,6 @@
 </style>
 
 <div class="options">
-	result = svelte.compile(source, &#123;
 	<div class="option">
 		<span class="key">generate:</span>
 
@@ -143,5 +143,4 @@
 		<span class="key">legacy:</span>
 		<input type="checkbox" bind:checked={$compile_options.legacy}> <span class="boolean">{$compile_options.legacy}</span>
 	</label>
-	});
 </div>
