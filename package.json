@@ -21,7 +21,7 @@
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-resolve": "^5.0.0",
     "rollup-plugin-terser": "^5.0.0",
-    "svelte": "^3.0.0-beta.28"
+    "svelte": "^3.49.0"
   },
   "repository": "https://github.com/suavejs/svelte-repl-monaco",
   "author": "Rich Harris",
